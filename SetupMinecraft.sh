@@ -251,26 +251,7 @@ sudo sed -i "s:servername:$ServerName:g" /etc/systemd/system/$ServerName.service
 sed -i "/server-port=/c\server-port=$PortIPV4" server.properties
 sed -i "/server-portv6=/c\server-portv6=$PortIPV6" server.properties
 sudo systemctl daemon-reload
-
-echo -n "Start Minecraft server at startup automatically (y/n)?"
-read answer < /dev/tty
-if [ "$answer" != "${answer#[Yy]}" ]; then
-  sudo systemctl enable $ServerName.service
-
-  # Automatic reboot at 4am configuration
-  TimeZone=$(cat /etc/timezone)
-  CurrentTime=$(date)
-  echo "Your time zone is currently set to $TimeZone.  Current system time: $CurrentTime"
-  echo "You can adjust/remove the selected reboot time later by typing crontab -e or running SetupMinecraft.sh again."
-  echo -n "Automatically restart and backup server at 4am daily (y/n)?"
-  read answer < /dev/tty
-  if [ "$answer" != "${answer#[Yy]}" ]; then    
-    croncmd="$DirName/minecraftbe/$ServerName/restart.sh"
-    cronjob="0 4 * * * $croncmd"
-    ( crontab -l | grep -v -F "$croncmd" ; echo "$cronjob" ) | crontab -
-    echo "Daily restart scheduled.  To change time or remove automatic restart type crontab -e"
-  fi
-fi
+sudo systemctl enable $ServerName.service
 
 # Finished!
 echo "Setup is complete.  Starting Minecraft server..."
