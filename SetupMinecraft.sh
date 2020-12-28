@@ -38,12 +38,6 @@ function read_with_prompt {
   done
 }
 
-# Check to make sure we aren't being ran as root
-if [ $(id -u) = 0 ]; then
-   echo "This script is not meant to be ran as root or sudo.  Please run normally with ./SetupMinecraft.sh.  If you know what you are doing and want to override this edit this check out of SetupMinecraft.sh.  Exiting..."
-   exit 1
-fi
-
 # Install dependencies required to run Minecraft server in the background
 echo "Installing screen, unzip, sudo, net-tools, wget.."
 if [ ! -n "`which sudo`" ]; then
@@ -77,13 +71,9 @@ fi
 echo "Enter a short one word label for a new or existing server..."
 echo "It will be used in the folder name and service name..."
 
-read_with_prompt ServerName "Server Label"
-
-echo "Enter server IPV4 port (default 19132): "
-read_with_prompt PortIPV4 "Server IPV4 Port" 19132
-
-echo "Enter server IPV6 port (default 19133): "
-read_with_prompt PortIPV6 "Server IPV6 Port" 19133
+$ServerName = "WanderServer"
+%PortIPV4 19132
+$PortIPV6 19133
 
 if [ -d "$ServerName" ]; then
   echo "Directory minecraftbe/$ServerName already exists!  Updating scripts and configuring service ..."
@@ -130,21 +120,7 @@ if [ -d "$ServerName" ]; then
   sed -i "/server-port=/c\server-port=$PortIPV4" server.properties
   sed -i "/server-portv6=/c\server-portv6=$PortIPV6" server.properties
   sudo systemctl daemon-reload
-  echo -n "Start Minecraft server at startup automatically (y/n)?"
-  read answer < /dev/tty
-  if [ "$answer" != "${answer#[Yy]}" ]; then
-    sudo systemctl enable $ServerName.service
-
-    # Automatic reboot at 4am configuration
-    echo -n "Automatically restart and backup server at 4am daily (y/n)?"
-    read answer < /dev/tty
-    if [ "$answer" != "${answer#[Yy]}" ]; then
-      croncmd="$DirName/minecraftbe/$ServerName/restart.sh"
-      cronjob="0 4 * * * $croncmd"
-      ( crontab -l | grep -v -F "$croncmd" ; echo "$cronjob" ) | crontab -
-      echo "Daily restart scheduled.  To change time or remove automatic restart type crontab -e"
-    fi
-  fi
+  sudo systemctl enable $ServerName.service
 
   # Setup completed
   echo "Setup is complete.  Starting Minecraft $ServerName server..."
